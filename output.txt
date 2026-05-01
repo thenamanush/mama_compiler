@@ -1,0 +1,26 @@
+=== TOKENS ===
+MAMA : মামা
+ID : সংখ্যা
+ASSIGN : =
+NUMBER : ১০
+SEMI : ;
+MAMA : মামা
+ID : যোগফল
+ASSIGN : =
+ID : সংখ্যা
+PLUS : +
+NUMBER : ৫
+SEMI : ;
+EOF : 
+
+=== AST ===
+Assignment: সংখ্যা
+  Integer Value: 10
+Assignment: যোগফল
+  Binary Operator: +
+    Variable: সংখ্যা
+    Integer Value: 5
+
+=== SYMBOL TABLE ===
+যোগফল = 15
+সংখ্যা = 10
