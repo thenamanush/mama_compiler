@@ -1,14 +1,45 @@
+<<<<<<< HEAD
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <stdexcept>
+#include <cctype>
+#include<cmath>
+#include<climits>
+=======
 #include <bits/stdc++.h>
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
 using namespace std;
 
 // ================= TOKEN TYPES =================
 
 enum class TokenType
 {
+<<<<<<< HEAD
+    // DATA TYPES
+    MAMA_NUMBER,
+    MAMA_STRING,
+
+    // KEYWORDS
+    IF,
+    ELSE,
+    PRINT,
+
+    // VALUES
+    ID,
+    NUMBER,
+    STRING_LITERAL,
+
+    // OPERATORS
+=======
     MAMA,
     ID,
     NUMBER,
 
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
     PLUS,
     MINUS,
     MUL,
@@ -16,15 +47,43 @@ enum class TokenType
 
     ASSIGN,
 
+<<<<<<< HEAD
+    GREATER,
+    LESS,
+    EQUAL_EQUAL,
+
+    // SYMBOLS
     LPAREN,
     RPAREN,
+    LBRACE,
+    RBRACE,
+=======
+    LPAREN,
+    RPAREN,
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
 
     SEMI,
 
     EOF_TOKEN
 };
 
+<<<<<<< HEAD
+// ======================================================
+// VARIABLE TYPES(tarek)
+// ======================================================
+
+enum class VarType
+{
+    INT,
+    STRING
+};
+
+// ======================================================
+// TOKEN
+// ======================================================
+=======
 // ================= TOKEN (by tarek) =================
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
 
 class Token
 {
@@ -40,6 +99,11 @@ public:
         this->line = line;
     }
 
+<<<<<<< HEAD
+    string toString()
+    {
+        return lexeme;
+=======
     string typeToString() const
     {
         switch (type)
@@ -87,6 +151,7 @@ public:
     string toString() const
     {
         return typeToString() + " : " + lexeme;
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
     }
 };
 
@@ -202,11 +267,26 @@ public:
     int evaluate(ASTNode *node)
     {
 
+<<<<<<< HEAD
+        // Empty Expression Error
+        if (node == nullptr)
+        {
+            throw runtime_error(
+                "Null expression node");
+        }
+
+        // Number Node
+=======
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto n = dynamic_cast<NumberNode *>(node))
         {
             return n->value;
         }
 
+<<<<<<< HEAD
+        // Variable Node
+=======
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto v = dynamic_cast<VarNode *>(node))
         {
 
@@ -219,12 +299,80 @@ public:
             return symbolTable.get(v->name);
         }
 
+<<<<<<< HEAD
+        // Unary Minus
+        if (auto u = dynamic_cast<UnaryOpNode *>(node))
+        {
+            int value = evaluate(u->expr);
+
+            if (u->op == "-")
+            {
+                return -value;
+            }
+
+            throw runtime_error(
+                "Unknown unary operator: " + u->op);
+        }
+
+        // Binary Operations
+=======
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto b = dynamic_cast<BinOpNode *>(node))
         {
 
             int left = evaluate(b->left);
             int right = evaluate(b->right);
 
+<<<<<<< HEAD
+            // Addition
+            if (b->op == "+")
+            {
+
+                // Integer Overflow Check
+                if ((right > 0 && left > INT_MAX - right) ||
+                    (right < 0 && left < INT_MIN - right))
+                {
+                    throw runtime_error(
+                        "Integer overflow in addition");
+                }
+
+                return left + right;
+            }
+
+            // Subtraction
+            if (b->op == "-")
+            {
+
+                if ((right < 0 && left > INT_MAX + right) ||
+                    (right > 0 && left < INT_MIN + right))
+                {
+                    throw runtime_error(
+                        "Integer overflow in subtraction");
+                }
+
+                return left - right;
+            }
+
+            // Multiplication
+            if (b->op == "*")
+            {
+
+                if (left != 0 &&
+                    (right > INT_MAX / left ||
+                     right < INT_MIN / left))
+                {
+                    throw runtime_error(
+                        "Integer overflow in multiplication");
+                }
+
+                return left * right;
+            }
+
+            // Division
+            if (b->op == "/")
+            {
+
+=======
             if (b->op == "+")
                 return left + right;
 
@@ -236,6 +384,7 @@ public:
 
             if (b->op == "/")
             {
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
                 if (right == 0)
                 {
                     throw runtime_error(
@@ -244,8 +393,81 @@ public:
 
                 return left / right;
             }
+<<<<<<< HEAD
+
+            // Modulus
+            if (b->op == "%")
+            {
+
+                if (right == 0)
+                {
+                    throw runtime_error(
+                        "Modulo by zero");
+                }
+
+                return left % right;
+            }
+
+            // Power
+            if (b->op == "^")
+            {
+
+                // Negative Power Error
+                if (right < 0)
+                {
+                    throw runtime_error(
+                        "Negative exponent not supported");
+                }
+
+                return pow(left, right);
+            }
+
+            // Equal
+            if (b->op == "==")
+            {
+                return left == right;
+            }
+
+            // Not Equal
+            if (b->op == "!=")
+            {
+                return left != right;
+            }
+
+            // Greater Than
+            if (b->op == ">")
+            {
+                return left > right;
+            }
+
+            // Less Than
+            if (b->op == "<")
+            {
+                return left < right;
+            }
+
+            // Greater Than or Equal
+            if (b->op == ">=")
+            {
+                return left >= right;
+            }
+
+            // Less Than or Equal
+            if (b->op == "<=")
+            {
+                return left <= right;
+            }
+
+            // Invalid Operator Exception
+            throw runtime_error(
+                "Unknown operator: " + b->op);
         }
 
+        // Assignment Node
+=======
+        }
+
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto a = dynamic_cast<AssignNode *>(node))
         {
 
