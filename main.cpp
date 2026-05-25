@@ -1,14 +1,27 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// ================= TOKEN TYPES =================
+// ======================================================
+// TOKEN TYPES(updated by tarek)
+// ======================================================
 
 enum class TokenType
 {
-    MAMA,
+    // DATA TYPES
+    MAMA_NUMBER,
+    MAMA_STRING,
+
+    // KEYWORDS
+    IF,
+    ELSE,
+    PRINT,
+
+    // VALUES
     ID,
     NUMBER,
+    STRING_LITERAL,
 
+    // OPERATORS
     PLUS,
     MINUS,
     MUL,
@@ -16,15 +29,34 @@ enum class TokenType
 
     ASSIGN,
 
+    GREATER,
+    LESS,
+    EQUAL_EQUAL,
+
+    // SYMBOLS
     LPAREN,
     RPAREN,
+    LBRACE,
+    RBRACE,
 
     SEMI,
 
     EOF_TOKEN
 };
 
-// ================= TOKEN (by tarek) =================
+// ======================================================
+// VARIABLE TYPES(tarek)
+// ======================================================
+
+enum class VarType
+{
+    INT,
+    STRING
+};
+
+// ======================================================
+// TOKEN
+// ======================================================
 
 class Token
 {
@@ -40,57 +72,15 @@ public:
         this->line = line;
     }
 
-    string typeToString() const
+    string toString()
     {
-        switch (type)
-        {
-        case TokenType::MAMA:
-            return "MAMA";
-
-        case TokenType::ID:
-            return "ID";
-
-        case TokenType::NUMBER:
-            return "NUMBER";
-
-        case TokenType::PLUS:
-            return "PLUS";
-
-        case TokenType::MINUS:
-            return "MINUS";
-
-        case TokenType::MUL:
-            return "MUL";
-
-        case TokenType::DIV:
-            return "DIV";
-
-        case TokenType::ASSIGN:
-            return "ASSIGN";
-
-        case TokenType::LPAREN:
-            return "LPAREN";
-
-        case TokenType::RPAREN:
-            return "RPAREN";
-
-        case TokenType::SEMI:
-            return "SEMI";
-
-        case TokenType::EOF_TOKEN:
-            return "EOF";
-        }
-
-        return "UNKNOWN";
-    }
-
-    string toString() const
-    {
-        return typeToString() + " : " + lexeme;
+        return lexeme;
     }
 };
 
-// ================= AST (turjo) =================
+// ======================================================
+// AST NODES (updated- MHT)
+// ======================================================
 
 class ASTNode
 {
@@ -104,6 +94,17 @@ public:
     int value;
 
     NumberNode(int value)
+    {
+        this->value = value;
+    }
+};
+
+class StringNode : public ASTNode
+{
+public:
+    string value;
+
+    StringNode(string value)
     {
         this->value = value;
     }
@@ -138,27 +139,68 @@ public:
 class AssignNode : public ASTNode
 {
 public:
+    VarType type;
     string name;
     ASTNode *expr;
 
-    AssignNode(string name, ASTNode *expr)
+    AssignNode(
+        VarType type,
+        string name,
+        ASTNode *expr)
     {
+        this->type = type;
         this->name = name;
         this->expr = expr;
     }
 };
 
-// ================= SYMBOL TABLE (turjo) =================
+class PrintNode : public ASTNode
+{
+public:
+    ASTNode *expr;
+
+    PrintNode(ASTNode *expr)
+    {
+        this->expr = expr;
+    }
+};
+
+class IfNode : public ASTNode
+{
+public:
+    ASTNode *condition;
+    vector<ASTNode *> body;
+
+    IfNode(
+        ASTNode *condition,
+        vector<ASTNode *> body)
+    {
+        this->condition = condition;
+        this->body = body;
+    }
+};
+
+// ======================================================
+// SYMBOL TABLE (updated- MHT)
+// ======================================================
+
+struct Symbol
+{
+    VarType type;
+    string value;
+};
 
 class SymbolTable
 {
-private:
-    unordered_map<string, int> table;
-
 public:
-    void set(string name, int value)
+    unordered_map<string, Symbol> table;
+
+    void set(
+        string name,
+        VarType type,
+        string value)
     {
-        table[name] = value;
+        table[name] = {type, value};
     }
 
     bool contains(string name)
@@ -166,138 +208,15 @@ public:
         return table.find(name) != table.end();
     }
 
-    int get(string name)
+    Symbol get(string name)
     {
         return table[name];
     }
-
-    void display(ofstream &out)
-    {
-        for (auto x : table)
-        {
-            out << x.first << " = " << x.second << "\n";
-        }
-    }
 };
 
-// ================= SEMANTIC ANALYZER (istiak jubayer)=================
-
-class SemanticAnalyzer
-{
-private:
-    SymbolTable &symbolTable;
-
-public:
-    SemanticAnalyzer(SymbolTable &st)
-        : symbolTable(st) {}
-
-    void analyze(vector<ASTNode *> &nodes)
-    {
-        for (auto node : nodes)
-        {
-            evaluate(node);
-        }
-    }
-
-    int evaluate(ASTNode *node)
-    {
-
-        if (auto n = dynamic_cast<NumberNode *>(node))
-        {
-            return n->value;
-        }
-
-        if (auto v = dynamic_cast<VarNode *>(node))
-        {
-
-            if (!symbolTable.contains(v->name))
-            {
-                throw runtime_error(
-                    "Undefined variable: " + v->name);
-            }
-
-            return symbolTable.get(v->name);
-        }
-
-        if (auto b = dynamic_cast<BinOpNode *>(node))
-        {
-
-            int left = evaluate(b->left);
-            int right = evaluate(b->right);
-
-            if (b->op == "+")
-                return left + right;
-
-            if (b->op == "-")
-                return left - right;
-
-            if (b->op == "*")
-                return left * right;
-
-            if (b->op == "/")
-            {
-                if (right == 0)
-                {
-                    throw runtime_error(
-                        "Division by zero");
-                }
-
-                return left / right;
-            }
-        }
-
-        if (auto a = dynamic_cast<AssignNode *>(node))
-        {
-
-            int value = evaluate(a->expr);
-
-            symbolTable.set(a->name, value);
-
-            return value;
-        }
-
-        return 0;
-    }
-
-    static int convertBanglaNumber(string s)
-    {
-        vector<string> bn = {
-            "০", "১", "২", "৩", "৪",
-            "৫", "৬", "৭", "৮", "৯"};
-
-        string result = "";
-
-        for (int i = 0; i < s.size();)
-        {
-
-            bool found = false;
-
-            for (int d = 0; d <= 9; d++)
-            {
-
-                if (s.substr(i, bn[d].size()) == bn[d])
-                {
-                    result += char('0' + d);
-                    i += bn[d].size();
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                i++;
-            }
-        }
-
-        if (result.empty())
-            return 0;
-
-        return stoi(result);
-    }
-};
-
-// ================= LEXER =================
+// ======================================================
+// LEXER
+// ======================================================
 
 class Lexer
 {
@@ -310,7 +229,11 @@ private:
     int line = 1;
 
     unordered_map<string, TokenType> keywords = {
-        {"মামা", TokenType::MAMA}};
+        {"মামাসংখ্যা", TokenType::MAMA_NUMBER},
+        {"মামাঅক্ষর", TokenType::MAMA_STRING},
+        {"যদি", TokenType::IF},
+        {"দেখাও", TokenType::PRINT},
+        {"নাহলে", TokenType::ELSE}};
 
 public:
     Lexer(string source)
@@ -320,7 +243,6 @@ public:
 
     vector<Token> scanTokens()
     {
-
         while (!isAtEnd())
         {
             start = current;
@@ -328,21 +250,45 @@ public:
         }
 
         tokens.push_back(
-            Token(TokenType::EOF_TOKEN, "", line));
+            Token(
+                TokenType::EOF_TOKEN,
+                "",
+                line));
 
         return tokens;
     }
 
 private:
-    bool isBanglaDigitStart(unsigned char c)
+    bool isAtEnd()
     {
-        return c >= 224;
+        return current >= source.size();
+    }
+
+    char advance()
+    {
+        return source[current++];
+    }
+
+    char peek()
+    {
+        if (isAtEnd())
+            return '\0';
+
+        return source[current];
+    }
+
+    void addToken(TokenType type)
+    {
+        tokens.push_back(
+            Token(
+                type,
+                source.substr(start, current - start),
+                line));
     }
 
     void scanToken()
     {
-
-        unsigned char c = advance();
+        char c = advance();
 
         switch (c)
         {
@@ -352,6 +298,14 @@ private:
 
         case ')':
             addToken(TokenType::RPAREN);
+            break;
+
+        case '{':
+            addToken(TokenType::LBRACE);
+            break;
+
+        case '}':
+            addToken(TokenType::RBRACE);
             break;
 
         case '+':
@@ -374,8 +328,20 @@ private:
             addToken(TokenType::ASSIGN);
             break;
 
+        case '>':
+            addToken(TokenType::GREATER);
+            break;
+
+        case '<':
+            addToken(TokenType::LESS);
+            break;
+
         case ';':
             addToken(TokenType::SEMI);
+            break;
+
+        case '"':
+            stringLiteral();
             break;
 
         case ' ':
@@ -389,58 +355,42 @@ private:
 
         default:
 
-            // English number
             if (isdigit(c))
             {
                 number();
             }
 
-            // Bangla UTF-8 sequence
-            else if (isBanglaDigitStart(c))
-            {
-
-                string temp;
-                temp += c;
-
-                if (current < source.size())
-                    temp += source[current];
-
-                if (current + 1 < source.size())
-                    temp += source[current + 1];
-
-                vector<string> bn = {
-                    "০", "১", "২", "৩", "৪",
-                    "৫", "৬", "৭", "৮", "৯"};
-
-                bool isNum = false;
-
-                for (auto x : bn)
-                {
-                    if (temp == x)
-                    {
-                        isNum = true;
-                        break;
-                    }
-                }
-
-                if (isNum)
-                    number();
-                else
-                    identifier();
-            }
-
-            else if (isalpha(c))
+            else
             {
                 identifier();
             }
-
-            break;
         }
+    }
+
+    void stringLiteral()
+    {
+        while (peek() != '"' && !isAtEnd())
+        {
+            advance();
+        }
+
+        advance();
+
+        addToken(TokenType::STRING_LITERAL);
+    }
+
+    void number()
+    {
+        while (isdigit(peek()))
+        {
+            advance();
+        }
+
+        addToken(TokenType::NUMBER);
     }
 
     void identifier()
     {
-
         while (
             isalnum(peek()) ||
             (unsigned char)peek() >= 128)
@@ -460,49 +410,11 @@ private:
             addToken(TokenType::ID);
         }
     }
-
-    void number()
-    {
-
-        while (
-            isdigit(peek()) ||
-            (unsigned char)peek() >= 128)
-        {
-            advance();
-        }
-
-        addToken(TokenType::NUMBER);
-    }
-
-    char advance()
-    {
-        return source[current++];
-    }
-
-    char peek()
-    {
-        if (isAtEnd())
-            return '\0';
-
-        return source[current];
-    }
-
-    bool isAtEnd()
-    {
-        return current >= source.size();
-    }
-
-    void addToken(TokenType type)
-    {
-        tokens.push_back(
-            Token(
-                type,
-                source.substr(start, current - start),
-                line));
-    }
 };
 
-// ================= PARSER =================
+// ======================================================
+// PARSER
+// ======================================================
 
 class Parser
 {
@@ -518,7 +430,6 @@ public:
 
     vector<ASTNode *> parse()
     {
-
         vector<ASTNode *> nodes;
 
         while (!isAtEnd())
@@ -532,48 +443,111 @@ public:
 private:
     ASTNode *statement()
     {
-
-        if (match({TokenType::MAMA}))
+        if (match({TokenType::MAMA_NUMBER,
+                   TokenType::MAMA_STRING}))
         {
             return declaration();
         }
 
-        throw runtime_error(
-            "Expected variable declaration");
+        if (match({TokenType::PRINT}))
+        {
+            return printStatement();
+        }
+
+        if (match({TokenType::IF}))
+        {
+            return ifStatement();
+        }
+
+        throw runtime_error("Invalid statement");
     }
 
     ASTNode *declaration()
     {
+        VarType type;
 
-        Token name = consume(
-            TokenType::ID,
-            "Expected variable name");
+        if (previous().type ==
+            TokenType::MAMA_NUMBER)
+        {
+            type = VarType::INT;
+        }
+        else
+        {
+            type = VarType::STRING;
+        }
 
-        consume(
-            TokenType::ASSIGN,
-            "Expected '='");
+        Token name =
+            consume(TokenType::ID,
+                    "Expected variable name");
+
+        consume(TokenType::ASSIGN,
+                "Expected '='");
 
         ASTNode *expr = expression();
 
-        consume(
-            TokenType::SEMI,
-            "Expected ';'");
+        consume(TokenType::SEMI,
+                "Expected ';'");
 
         return new AssignNode(
+            type,
             name.lexeme,
             expr);
     }
 
+    ASTNode *printStatement()
+    {
+        consume(TokenType::LPAREN,
+                "Expected '('");
+
+        ASTNode *expr = expression();
+
+        consume(TokenType::RPAREN,
+                "Expected ')'");
+
+        consume(TokenType::SEMI,
+                "Expected ';'");
+
+        return new PrintNode(expr);
+    }
+
+    ASTNode *ifStatement()
+    {
+        consume(TokenType::LPAREN,
+                "Expected '('");
+
+        ASTNode *condition =
+            expression();
+
+        consume(TokenType::RPAREN,
+                "Expected ')'");
+
+        consume(TokenType::LBRACE,
+                "Expected '{'");
+
+        vector<ASTNode *> body;
+
+        while (!check(TokenType::RBRACE))
+        {
+            body.push_back(statement());
+        }
+
+        consume(TokenType::RBRACE,
+                "Expected '}'");
+
+        return new IfNode(
+            condition,
+            body);
+    }
+
     ASTNode *expression()
     {
-
         ASTNode *node = term();
 
-        while (
-            match({TokenType::PLUS,
-                   TokenType::MINUS}))
+        while (match({TokenType::PLUS,
+                      TokenType::MINUS,
+                      TokenType::GREATER,
+                      TokenType::LESS}))
         {
-
             string op = previous().lexeme;
 
             node = new BinOpNode(
@@ -587,14 +561,11 @@ private:
 
     ASTNode *term()
     {
-
         ASTNode *node = primary();
 
-        while (
-            match({TokenType::MUL,
-                   TokenType::DIV}))
+        while (match({TokenType::MUL,
+                      TokenType::DIV}))
         {
-
             string op = previous().lexeme;
 
             node = new BinOpNode(
@@ -608,14 +579,22 @@ private:
 
     ASTNode *primary()
     {
-
         if (match({TokenType::NUMBER}))
         {
-
             return new NumberNode(
-                SemanticAnalyzer::
-                    convertBanglaNumber(
-                        previous().lexeme));
+                stoi(previous().lexeme));
+        }
+
+        if (match({TokenType::STRING_LITERAL}))
+        {
+            string val =
+                previous().lexeme;
+
+            val =
+                val.substr(1,
+                           val.size() - 2);
+
+            return new StringNode(val);
         }
 
         if (match({TokenType::ID}))
@@ -626,12 +605,11 @@ private:
 
         if (match({TokenType::LPAREN}))
         {
+            ASTNode *expr =
+                expression();
 
-            ASTNode *expr = expression();
-
-            consume(
-                TokenType::RPAREN,
-                "Expected ')'");
+            consume(TokenType::RPAREN,
+                    "Expected ')'");
 
             return expr;
         }
@@ -640,12 +618,11 @@ private:
             "Expected expression");
     }
 
-    bool match(initializer_list<TokenType> types)
+    bool match(
+        initializer_list<TokenType> types)
     {
-
-        for (TokenType type : types)
+        for (auto type : types)
         {
-
             if (check(type))
             {
                 advance();
@@ -658,7 +635,6 @@ private:
 
     bool check(TokenType type)
     {
-
         if (isAtEnd())
             return false;
 
@@ -667,11 +643,8 @@ private:
 
     Token advance()
     {
-
         if (!isAtEnd())
-        {
             current++;
-        }
 
         return previous();
     }
@@ -696,7 +669,6 @@ private:
         TokenType type,
         string message)
     {
-
         if (check(type))
         {
             return advance();
@@ -706,89 +678,131 @@ private:
     }
 };
 
-// ================= TREE =================
+// ======================================================
+// PYTHON GENERATOR
+// ======================================================
 
-void printTree(
-    ASTNode *node,
-    int indent,
-    ofstream &out)
+class PythonGenerator
 {
-
-    string p(indent * 2, ' ');
-
-    if (auto a =
-            dynamic_cast<AssignNode *>(node))
+public:
+    void generate(
+        vector<ASTNode *> &nodes,
+        ofstream &out)
     {
-
-        out << p
-            << "Assignment: "
-            << a->name
-            << "\n";
-
-        printTree(a->expr, indent + 1, out);
+        for (auto node : nodes)
+        {
+            generateNode(node, out);
+        }
     }
 
-    else if (
-        auto b =
-            dynamic_cast<BinOpNode *>(node))
+private:
+    void generateNode(
+        ASTNode *node,
+        ofstream &out)
     {
+        if (auto a =
+                dynamic_cast<AssignNode *>(node))
+        {
+            out << a->name << " = ";
 
-        out << p
-            << "Binary Operator: "
-            << b->op
-            << "\n";
+            generateExpr(a->expr, out);
 
-        printTree(b->left, indent + 1, out);
-        printTree(b->right, indent + 1, out);
+            out << "\n";
+        }
+
+        else if (
+            auto p =
+                dynamic_cast<PrintNode *>(node))
+        {
+            out << "print(";
+
+            generateExpr(p->expr, out);
+
+            out << ")\n";
+        }
+
+        else if (
+            auto i =
+                dynamic_cast<IfNode *>(node))
+        {
+            out << "if ";
+
+            generateExpr(
+                i->condition,
+                out);
+
+            out << ":\n";
+
+            for (auto stmt : i->body)
+            {
+                out << "    ";
+
+                generateNode(stmt, out);
+            }
+        }
     }
 
-    else if (
-        auto v =
-            dynamic_cast<VarNode *>(node))
+    void generateExpr(
+        ASTNode *node,
+        ofstream &out)
     {
+        if (auto n =
+                dynamic_cast<NumberNode *>(node))
+        {
+            out << n->value;
+        }
 
-        out << p
-            << "Variable: "
-            << v->name
-            << "\n";
+        else if (
+            auto s =
+                dynamic_cast<StringNode *>(node))
+        {
+            out << "\"" << s->value << "\"";
+        }
+
+        else if (
+            auto v =
+                dynamic_cast<VarNode *>(node))
+        {
+            out << v->name;
+        }
+
+        else if (
+            auto b =
+                dynamic_cast<BinOpNode *>(node))
+        {
+            generateExpr(b->left, out);
+
+            out << " "
+                << b->op
+                << " ";
+
+            generateExpr(b->right, out);
+        }
     }
+};
 
-    else if (
-        auto n =
-            dynamic_cast<NumberNode *>(node))
-    {
-
-        out << p
-            << "Integer Value: "
-            << n->value
-            << "\n";
-    }
-}
-
-// ================= MAIN =================
+// ======================================================
+// MAIN
+// ======================================================
 
 int main()
 {
-
     ifstream in("input.bn");
 
-    ofstream out("output.txt");
+    if (!in.is_open())
+    {
+        cout << "Cannot open input.bn\n";
+        return 0;
+    }
+
+    stringstream buffer;
+
+    buffer << in.rdbuf();
+
+    string source = buffer.str();
 
     try
     {
-
-        if (!in.is_open())
-        {
-            throw runtime_error(
-                "Cannot open input.bn");
-        }
-
-        stringstream buffer;
-
-        buffer << in.rdbuf();
-
-        string source = buffer.str();
-
         Lexer lexer(source);
 
         vector<Token> tokens =
@@ -799,43 +813,24 @@ int main()
         vector<ASTNode *> nodes =
             parser.parse();
 
-        SymbolTable st;
+        ofstream py("output.py");
 
-        SemanticAnalyzer analyzer(st);
+        PythonGenerator generator;
 
-        analyzer.analyze(nodes);
+        generator.generate(nodes, py);
 
-        out << "=== TOKENS ===\n";
-
-        for (auto t : tokens)
-        {
-            out << t.toString() << "\n";
-        }
-
-        out << "\n=== AST ===\n";
-
-        for (auto node : nodes)
-        {
-            printTree(node, 0, out);
-        }
-
-        out << "\n=== SYMBOL TABLE ===\n";
-
-        st.display(out);
+        py.close();
 
         cout
-            << "Compiler Finished Successfully\n";
+            << "Compilation Successful\n";
+
+        cout
+            << "Generated output.py\n";
     }
 
     catch (exception &e)
     {
-
-        cerr
-            << "Compiler Error: "
-            << e.what()
-            << "\n";
-
-        out
+        cout
             << "Compiler Error: "
             << e.what()
             << "\n";
