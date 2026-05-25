@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -8,12 +9,16 @@
 #include <cctype>
 #include<cmath>
 #include<climits>
+=======
+#include <bits/stdc++.h>
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
 using namespace std;
 
 // ================= TOKEN TYPES =================
 
 enum class TokenType
 {
+<<<<<<< HEAD
     // DATA TYPES
     MAMA_NUMBER,
     MAMA_STRING,
@@ -29,6 +34,12 @@ enum class TokenType
     STRING_LITERAL,
 
     // OPERATORS
+=======
+    MAMA,
+    ID,
+    NUMBER,
+
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
     PLUS,
     MINUS,
     MUL,
@@ -36,6 +47,7 @@ enum class TokenType
 
     ASSIGN,
 
+<<<<<<< HEAD
     GREATER,
     LESS,
     EQUAL_EQUAL,
@@ -45,12 +57,17 @@ enum class TokenType
     RPAREN,
     LBRACE,
     RBRACE,
+=======
+    LPAREN,
+    RPAREN,
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
 
     SEMI,
 
     EOF_TOKEN
 };
 
+<<<<<<< HEAD
 // ======================================================
 // VARIABLE TYPES(tarek)
 // ======================================================
@@ -64,6 +81,9 @@ enum class VarType
 // ======================================================
 // TOKEN
 // ======================================================
+=======
+// ================= TOKEN (by tarek) =================
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
 
 class Token
 {
@@ -79,9 +99,59 @@ public:
         this->line = line;
     }
 
+<<<<<<< HEAD
     string toString()
     {
         return lexeme;
+=======
+    string typeToString() const
+    {
+        switch (type)
+        {
+        case TokenType::MAMA:
+            return "MAMA";
+
+        case TokenType::ID:
+            return "ID";
+
+        case TokenType::NUMBER:
+            return "NUMBER";
+
+        case TokenType::PLUS:
+            return "PLUS";
+
+        case TokenType::MINUS:
+            return "MINUS";
+
+        case TokenType::MUL:
+            return "MUL";
+
+        case TokenType::DIV:
+            return "DIV";
+
+        case TokenType::ASSIGN:
+            return "ASSIGN";
+
+        case TokenType::LPAREN:
+            return "LPAREN";
+
+        case TokenType::RPAREN:
+            return "RPAREN";
+
+        case TokenType::SEMI:
+            return "SEMI";
+
+        case TokenType::EOF_TOKEN:
+            return "EOF";
+        }
+
+        return "UNKNOWN";
+    }
+
+    string toString() const
+    {
+        return typeToString() + " : " + lexeme;
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
     }
 };
 
@@ -197,6 +267,7 @@ public:
     int evaluate(ASTNode *node)
     {
 
+<<<<<<< HEAD
         // Empty Expression Error
         if (node == nullptr)
         {
@@ -205,12 +276,17 @@ public:
         }
 
         // Number Node
+=======
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto n = dynamic_cast<NumberNode *>(node))
         {
             return n->value;
         }
 
+<<<<<<< HEAD
         // Variable Node
+=======
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto v = dynamic_cast<VarNode *>(node))
         {
 
@@ -223,6 +299,7 @@ public:
             return symbolTable.get(v->name);
         }
 
+<<<<<<< HEAD
         // Unary Minus
         if (auto u = dynamic_cast<UnaryOpNode *>(node))
         {
@@ -238,12 +315,15 @@ public:
         }
 
         // Binary Operations
+=======
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto b = dynamic_cast<BinOpNode *>(node))
         {
 
             int left = evaluate(b->left);
             int right = evaluate(b->right);
 
+<<<<<<< HEAD
             // Addition
             if (b->op == "+")
             {
@@ -292,6 +372,19 @@ public:
             if (b->op == "/")
             {
 
+=======
+            if (b->op == "+")
+                return left + right;
+
+            if (b->op == "-")
+                return left - right;
+
+            if (b->op == "*")
+                return left * right;
+
+            if (b->op == "/")
+            {
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
                 if (right == 0)
                 {
                     throw runtime_error(
@@ -300,6 +393,7 @@ public:
 
                 return left / right;
             }
+<<<<<<< HEAD
 
             // Modulus
             if (b->op == "%")
@@ -370,6 +464,10 @@ public:
         }
 
         // Assignment Node
+=======
+        }
+
+>>>>>>> ef5edc0d45bb6f1cda0851a14c49f129fa7ffb32
         if (auto a = dynamic_cast<AssignNode *>(node))
         {
 
