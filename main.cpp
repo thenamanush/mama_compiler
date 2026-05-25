@@ -155,7 +155,9 @@ public:
     }
 };
 
-// ================= AST (turjo) =================
+// ======================================================
+// AST NODES (updated- MHT)
+// ======================================================
 
 class ASTNode
 {
@@ -169,6 +171,17 @@ public:
     int value;
 
     NumberNode(int value)
+    {
+        this->value = value;
+    }
+};
+
+class StringNode : public ASTNode
+{
+public:
+    string value;
+
+    StringNode(string value)
     {
         this->value = value;
     }
@@ -203,27 +216,68 @@ public:
 class AssignNode : public ASTNode
 {
 public:
+    VarType type;
     string name;
     ASTNode *expr;
 
-    AssignNode(string name, ASTNode *expr)
+    AssignNode(
+        VarType type,
+        string name,
+        ASTNode *expr)
     {
+        this->type = type;
         this->name = name;
         this->expr = expr;
     }
 };
 
-// ================= SYMBOL TABLE (turjo) =================
+class PrintNode : public ASTNode
+{
+public:
+    ASTNode *expr;
+
+    PrintNode(ASTNode *expr)
+    {
+        this->expr = expr;
+    }
+};
+
+class IfNode : public ASTNode
+{
+public:
+    ASTNode *condition;
+    vector<ASTNode *> body;
+
+    IfNode(
+        ASTNode *condition,
+        vector<ASTNode *> body)
+    {
+        this->condition = condition;
+        this->body = body;
+    }
+};
+
+// ======================================================
+// SYMBOL TABLE (updated- MHT)
+// ======================================================
+
+struct Symbol
+{
+    VarType type;
+    string value;
+};
 
 class SymbolTable
 {
-private:
-    unordered_map<string, int> table;
-
 public:
-    void set(string name, int value)
+    unordered_map<string, Symbol> table;
+
+    void set(
+        string name,
+        VarType type,
+        string value)
     {
-        table[name] = value;
+        table[name] = {type, value};
     }
 
     bool contains(string name)
@@ -231,17 +285,9 @@ public:
         return table.find(name) != table.end();
     }
 
-    int get(string name)
+    Symbol get(string name)
     {
         return table[name];
-    }
-
-    void display(ofstream &out)
-    {
-        for (auto x : table)
-        {
-            out << x.first << " = " << x.second << "\n";
-        }
     }
 };
 
